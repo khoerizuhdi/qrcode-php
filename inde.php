@@ -18,10 +18,8 @@
 
 <!-- membuat konten ada ditengah -->
 <div class="row justify-content-center mt-4">    
-
     <div style="width: 25rem;">
-
-        <form action="bmkg-qr.php" method="post">
+        <form action="index.php" method="post" name="form_qr" id="form_qr">
             <div class="card text-center">
                 <div class="card-header">
                     BMKG QR Generator
@@ -33,19 +31,14 @@
                     <div class="mb-4" >
                     <input style="width: 21rem;" name="nama" type="text" placeholder="Masukkan Nama File">
                     </div>
-                    <div class="mb-2 ">
+                    <div class="mb-1 ">
                             <input type="submit" class="btn btn-primary" value="Generate QR Code" >     
                     </div>
                 </div>  
             </div>
-        </form>
-        <div class="text-center mt-3">
-            <a type="button" class="btn btn-success" href="download.php">Download QR Code</a>
-        </div> 
+        </form>  
     </div>
 </div>
-    
-
 
 <?php 
 
@@ -60,69 +53,96 @@ $nama=$_POST['nama'];
 
     //ambil logo
     //$logopath="https://cdn.bmkg.go.id/Web/Logo-BMKG-new.png";
-    $logopath = 'temp/rect847.png';
+    //$logopath = 'temp/path1422.png';
+    $imgname =$nama;
+    $data = isset($_GET['data']) ? $_GET['data'] : $url;
+    $logo = isset($_GET['logo']) ? $_GET['logo'] : 'logo.png';
 
- //isi qrcode jika di scan
- $codeContents = $url; 
+ QRcode::png($data,$imgname,QR_ECLEVEL_L,11.45,0);
 
- //simpan file qrcode
- QRcode::png($codeContents, $tempdir.'qrwithlogo.png', QR_ECLEVEL_H, 10,4);
-
-
- // ambil file qrcode
- $QR = imagecreatefrompng($tempdir.'qrwithlogo.png');
-
- // memulai menggambar logo dalam file qrcode
- $logo = imagecreatefromstring(file_get_contents($logopath));
+ // === Adding image to qrcode
+ $QR = imagecreatefrompng($imgname);
+ if($logo !== FALSE){
+     $logopng = imagecreatefrompng($logo);
+     $QR_width = imagesx($QR);
+     $QR_height = imagesy($QR);
+     $logo_width = imagesx($logopng);
+     $logo_height = imagesy($logopng);
+     
+     list($newwidth, $newheight) = getimagesize($logo);
+     $out = imagecreatetruecolor($QR_width, $QR_width);
+     imagecopyresampled($out, $QR, 0, 0, 0, 0, $QR_width, $QR_height, $QR_width, $QR_height);
+     imagecopyresampled($out, $logopng, $QR_width/2.65, $QR_height/2.65, 0, 0, $QR_width/4, $QR_height/4, $newwidth, $newheight);
+     
+ }
+ imagepng($out,$imgname);
+ imagedestroy($out);
  
- imagecolortransparent($logo , imagecolorallocatealpha($logo , 0, 0, 0, 127));
- imagealphablending($logo , false);
- imagesavealpha($logo , true);
+ // === Change image color
+ $im = imagecreatefrompng($imgname);
+ $r = 44;$g = 62;$b = 80;
+ for($x=0;$x<imagesx($im);++$x){
+     for($y=0;$y<imagesy($im);++$y){
+         $index 	= imagecolorat($im, $x, $y);
+         $c   	= imagecolorsforindex($im, $index);
+         if(($c['red'] < 100) && ($c['green'] < 100) && ($c['blue'] < 100)) { // dark colors
+             // here we use the new color, but the original alpha channel
+             $colorB = imagecolorallocatealpha($im, 0x12, 0x2E, 0x31, $c['alpha']);
+             imagesetpixel($im, $x, $y, $colorB);
+         }
+     }
+ }
+ imagepng($im,$tempdir.'qrwithlogo.png');
+ //imagedestroy($im);
+ 
+ // === Convert Image to base64
+ //$type = pathinfo($imgname, PATHINFO_EXTENSION);
+ //$data = file_get_contents($imgname);
+ //$imgbase64 = 'data:image/' . $type . ';jpg,' . base64_encode($data);
 
- $QR_width = imagesx($QR);
- $QR_height = imagesy($QR);
+ //echo "<img src='$imgbase64' style='position:relative;display:block;width:240px;height:240px;margin:160px auto;'>";
 
- $logo_width = imagesx($logo);
- $logo_height = imagesy($logo);
+ //simpan dalam png
 
- // Scale logo to fit in the QR Code
- $logo_qr_width = $QR_width/7;
- $scale = $logo_width/$logo_qr_width;
- $logo_qr_height = $logo_height/$scale;
-
- imagecopyresampled($QR, $logo, $QR_width/2.4, $QR_height/2.4, 0, 0, $logo_qr_width, $logo_qr_height, $logo_width, $logo_height);
-
- // Simpan kode QR lagi, dengan logo di atasnya
- imagepng($QR,$tempdir.'qrwithlogo.png');
+ //imagepng($QR,$tempdir.'qrwithlogo.png');
 
 $img = file_get_contents('temp/qrwithlogo.png');
-
 $im = imagecreatefromstring($img);
-
 $width = imagesx($im);
-
 $height = imagesy($im);
-
 $newwidth = '240';
-
 $newheight = '240';
-
 $thumb = imagecreatetruecolor($newwidth, $newheight);
-
 imagecopyresized($thumb, $im, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
-
-imagejpeg($thumb,'temp/'.$nama ); //save image as jpg
+imagejpeg($thumb,'temp/'.$nama.'.png'); //save image as jpg
 
 //imagedestroy($thumb); 
 
 //imagedestroy($im);
- 
+ ?>
+
+<div class="row justify-content-center mt-2">    
+    <div style="width: 25rem;">
+        <form action="download.php" method="post" name="form_qr" id="form_qr">          
+                <div>
+                    <input style="width: 21rem;" name="nama" type="hidden" placeholder="Masukkan Nama File" value="<?php if (isset($_POST['nama'])) { echo $_POST['nama']; } ?>">
+                </div>
+                <div class="mb-2 text-center">
+                    <input type="submit" class="btn btn-success" value="Download QR Code" >     
+                </div>           
+        </form>
+    </div>
+</div>
+
+ <?php
   //menampilkan file qrcode posisi ditengah
   echo '<div align="center">';
-  echo '<img src="'.$tempdir.'resizeqr.png'.'" />';
+  echo '<img src="'.$tempdir.'/'.$nama.'.png" />';
   echo '</div>';
 
  ?>
+
+
 
 </body>
 <script language="JavaScript">
@@ -135,10 +155,3 @@ document.addEventListener("contextmenu", function(e)
 <?php
 }
 ?>
-
-
-
-
-
-
-
