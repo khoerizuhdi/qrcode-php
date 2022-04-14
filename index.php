@@ -11,7 +11,7 @@
 <nav class="navbar navbar-light bg-light">
   <div class="container justify-content-center">
     <a class="navbar-brand" href="#">
-      <img src="https://cdn.bmkg.go.id/Web/Logo-BMKG-new.png" alt="" width="80">
+      <img src="http://cdn.bmkg.go.id/Web/Logo-BMKG-new.png" alt="" width="80">
     </a>
   </div>
 </nav>
@@ -26,10 +26,10 @@
                 </div>
                 <div class="card-body">
                     <div class="mb-4" >
-                    <input style="width: 21rem;" name="url" type="text" placeholder="Masukkan Alamat URL">
+                    <input style="width: 21rem;" name="url" type="text" placeholder="Masukkan Alamat URL" autocomplete="off">
                     </div>
                     <div class="mb-4" >
-                    <input style="width: 21rem;" name="nama" type="text" placeholder="Masukkan Nama File">
+                    <input style="width: 21rem;" name="nama" type="text" placeholder="Masukkan Nama File" autocomplete="off">
                     </div>
                     <div class="mb-1 ">
                             <input type="submit" class="btn btn-primary" value="Generate QR Code" >     
@@ -54,29 +54,30 @@ $nama=$_POST['nama'];
     //ambil logo
     //$logopath="https://cdn.bmkg.go.id/Web/Logo-BMKG-new.png";
     //$logopath = 'temp/path1422.png';
-    $imgname =$nama;
+    $imgname = 'mentah';
     $data = isset($_GET['data']) ? $_GET['data'] : $url;
     $logo = isset($_GET['logo']) ? $_GET['logo'] : 'logo.png';
 
- QRcode::png($data,$imgname,QR_ECLEVEL_L,11.45,0);
+    QRcode::png($data,$imgname,QR_ECLEVEL_L,11.45,0);
 
- // === Adding image to qrcode
- $QR = imagecreatefrompng($imgname);
- if($logo !== FALSE){
-     $logopng = imagecreatefrompng($logo);
-     $QR_width = imagesx($QR);
-     $QR_height = imagesy($QR);
-     $logo_width = imagesx($logopng);
-     $logo_height = imagesy($logopng);
-     
-     list($newwidth, $newheight) = getimagesize($logo);
-     $out = imagecreatetruecolor($QR_width, $QR_width);
-     imagecopyresampled($out, $QR, 0, 0, 0, 0, $QR_width, $QR_height, $QR_width, $QR_height);
-     imagecopyresampled($out, $logopng, $QR_width/2.65, $QR_height/2.65, 0, 0, $QR_width/4, $QR_height/4, $newwidth, $newheight);
-     
- }
- imagepng($out,$imgname);
- imagedestroy($out);
+    // === Adding image to qrcode
+    $QR = imagecreatefrompng($imgname);
+    if($logo !== FALSE){
+        $logopng = imagecreatefrompng($logo);
+        $QR_width = imagesx($QR);
+        $QR_height = imagesy($QR);
+        $logo_width = imagesx($logopng);
+        $logo_height = imagesy($logopng);
+        
+        list($newwidth, $newheight) = getimagesize($logo);
+        $out = imagecreatetruecolor($QR_width, $QR_width);
+        imagecopyresampled($out, $QR, 0, 0, 0, 0, $QR_width, $QR_height, $QR_width, $QR_height);
+        imagecopyresampled($out, $logopng, $QR_width/2.65, $QR_height/2.65, 0, 0, $QR_width/4, $QR_height/4, $newwidth, $newheight);
+        
+    }
+    imagepng($out,$imgname);
+    imagedestroy($out);
+    imagedestroy($QR);
  
  // === Change image color
  $im = imagecreatefrompng($imgname);
@@ -92,8 +93,8 @@ $nama=$_POST['nama'];
          }
      }
  }
- imagepng($im,$tempdir.'qrwithlogo.png');
- //imagedestroy($im);
+   imagepng($im,$tempdir.'qrwithlogo.png');
+   imagedestroy($im);
  
  // === Convert Image to base64
  //$type = pathinfo($imgname, PATHINFO_EXTENSION);
@@ -106,19 +107,18 @@ $nama=$_POST['nama'];
 
  //imagepng($QR,$tempdir.'qrwithlogo.png');
 
-$img = file_get_contents('temp/qrwithlogo.png');
-$im = imagecreatefromstring($img);
-$width = imagesx($im);
-$height = imagesy($im);
-$newwidth = '240';
-$newheight = '240';
-$thumb = imagecreatetruecolor($newwidth, $newheight);
-imagecopyresized($thumb, $im, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
-imagejpeg($thumb,'temp/'.$nama.'.png'); //save image as jpg
+ $img = file_get_contents('temp/qrwithlogo.png');
+ $im = imagecreatefromstring($img);
+ $width = imagesx($im);
+ $height = imagesy($im);
+ $newwidth = '240';
+ $newheight = '240';
+ $thumb = imagecreatetruecolor($newwidth, $newheight);
+ imagecopyresized($thumb, $im, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
+ imagejpeg($thumb,'temp/'.$nama.'.png'); //save image as png
+    imagedestroy($thumb); 
+    imagedestroy($im);
 
-//imagedestroy($thumb); 
-
-//imagedestroy($im);
  ?>
 
 <div class="row justify-content-center mt-2">    
