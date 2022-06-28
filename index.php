@@ -44,8 +44,8 @@
 
 if (isset($_POST['url']))
 { 
-$url=$_POST['url'];
-$nama=$_POST['nama'];
+$url=htmlspecialchars($_POST['url']);
+$nama=htmlspecialchars($_POST['nama']);
  include "phpqrcode/qrlib.php"; 
   $tempdir = "temp/"; //Nama folder tempat menyimpan file qrcode
     if (!file_exists($tempdir)) //Buat folder bername temp
